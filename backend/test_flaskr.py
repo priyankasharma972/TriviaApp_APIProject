@@ -90,10 +90,8 @@ class TriviaTestCase(unittest.TestCase):
         self.search_term={'searchTerm':'Who'}
         res=self.client().post('/questions/search', json= self.search_term)
         data=json.loads(res.data)
-        print("Printing Data: " + data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
-        self.assertTrue(data['searchTerm'])
 
     #Failure Test Case for search_questions(404)
     def test_search_questions_failure(self):
@@ -102,11 +100,26 @@ class TriviaTestCase(unittest.TestCase):
         data=json.loads(res.data)
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'resource not found')
         
 
     #Success Test Case for play quiz
     def test_play_quiz(self):
-        res=self.client().post('/quizzes', json= {})
+        res=self.client().post('/quizzes', json= {'previous_questions': [20, 21],'quiz_category': {'type': 'Entertainment', 'id': '5'}})
         data=json.loads(res.data)
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['success'], True)
+        self.assertTrue(data['question'])
+        self.assertEqual(data['question']['category'], 5)
+
+    #Failure Test Case for play quiz
+    def test_play_quiz_failure(self):
+        res=self.client().post('/quizzes', json= {})
+        data=json.loads(res.data)
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'bad request')
+
+# Make the tests conveniently executable
+if __name__ == "__main__":
+    unittest.main()

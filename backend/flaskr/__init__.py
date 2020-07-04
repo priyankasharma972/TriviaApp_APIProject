@@ -88,17 +88,19 @@ def create_app(test_config=None):
        body = request.get_json()
        searchTerm = body.get('searchTerm')
        try:
-        if searchTerm: 
-            selection = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
-        else: 
-            new_question = body.get('question','')
-            new_answer = body.get('answer','')
-            new_difficulty = body.get('difficulty','')
-            new_category = body.get('category','')
-            question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
-            question.insert()
+            if searchTerm: 
+                selection = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
+            else: 
+                new_question = body.get('question','')
+                new_answer = body.get('answer','')
+                new_difficulty = body.get('difficulty','')
+                new_category = body.get('category','')
+                question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+                question.insert()
 
             selection = Question.query.order_by(Question.id).all()
+            if (len(selection) == 0):
+                abort(404)
             current_questions = paginate_questions(request, selection)
             return jsonify({
                     'success': True,
@@ -107,7 +109,7 @@ def create_app(test_config=None):
                     'questions': current_questions,
                     'total_questions': len(Question.query.all())
                 })
-       except Exception as error:
+       except:
         abort(422)
 
   #This route handles the search request for Questions 
@@ -147,34 +149,25 @@ def create_app(test_config=None):
   #This route handles the quiz play
   @app.route('/quizzes', methods=['POST'])
   def playQuiz():
-    if request.data:
-            search_key = request.get_json()
-            if (('quiz_category' in search_key and 'id' in search_key['quiz_category']) and 'previous_questions' in search_key):
-                questions_query = Question.query.filter_by(category=search_key['quiz_category']['id']).filter(
-                      Question.id.notin_(search_key["previous_questions"])).all()
-                length_of_available_question = len(questions_query)
-                if length_of_available_question > 0:
-                    result = {
-                      
-                          "success": True,
-                          "question": Question.format(
-                              questions_query[random.randrange(
-                                  0,
-                                  length_of_available_question
-                              )]
-                          )
-                          
-                    }
-                else:
-                    result = {
-                          "success": True,
-                          "question": None,
-                          
-                    }
-                return jsonify(result)
-            abort(404)
-            abort(422)
-
+    body = request.get_json()
+    previous_questions= body.get('previous_questions')
+    quiz_category= body.get('quiz_category')
+	  
+    if quiz_category['id']==0:
+        questions= Question.query.all()
+    else:
+        questions = Question.query.filter(Question.category==quiz_category['id']).all()
+    next_ques = questions[random.randint(0, len(questions)-1)]
+    flag=True
+    while flag:
+      if next_ques.id in previous_questions:
+        next_ques=questions[random.randint(0, len(questions)-1)]
+      else:
+        flag=False
+    return jsonify({
+      'success': True,
+      'question': next_ques.format()
+    })
 
   #Error Handlers
   @app.errorhandler(404)
