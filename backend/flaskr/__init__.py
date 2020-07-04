@@ -120,6 +120,8 @@ def create_app(test_config=None):
 
         if search_term:
             result = Question.query.filter(Question.question.ilike('%{}%'.format(search_term))).all()
+            if len(result)==0:
+                abort(404)
 
             return jsonify({
                 'success': True,
@@ -127,7 +129,6 @@ def create_app(test_config=None):
                 'total_questions': len(result),
                 'current_category': None
             })
-        abort(404)
 
   #This route handles questions based on a category
   @app.route('/categories/<int:id>/questions', methods=['GET'])
