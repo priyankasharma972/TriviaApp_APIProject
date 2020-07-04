@@ -157,16 +157,16 @@ def create_app(test_config=None):
         questions= Question.query.all()
     else:
         questions = Question.query.filter(Question.category==quiz_category['id']).all()
-    next_ques = questions[random.randint(0, len(questions)-1)]
+    next_question = questions[random.randint(0, len(questions)-1)]
     flag=True
     while flag:
-      if next_ques.id in previous_questions:
-        next_ques=questions[random.randint(0, len(questions)-1)]
+      if next_question.id in previous_questions:
+        next_question=questions[random.randint(0, len(questions)-1)]
       else:
         flag=False
     return jsonify({
       'success': True,
-      'question': next_ques.format()
+      'question': next_question.format()
     })
 
   #Error Handlers
