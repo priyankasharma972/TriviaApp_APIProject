@@ -152,7 +152,9 @@ def create_app(test_config=None):
     body = request.get_json()
     previous_questions= body.get('previous_questions')
     quiz_category= body.get('quiz_category')
-	  
+	
+    if ((quiz_category is None) or (previous_questions is None)):
+        abort(400)
     if quiz_category['id']==0:
         questions= Question.query.all()
     else:
