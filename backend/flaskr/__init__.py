@@ -86,29 +86,25 @@ def create_app(test_config=None):
   @app.route('/questions', methods=['POST'])
   def add_questions():
        body = request.get_json()
-       searchTerm = body.get('searchTerm')
        try:
-            if searchTerm: 
-                selection = Question.query.filter(Question.question.ilike(f'%{searchTerm}%')).all()
-            else: 
-                new_question = body.get('question','')
-                new_answer = body.get('answer','')
-                new_difficulty = body.get('difficulty','')
-                new_category = body.get('category','')
-                question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
-                question.insert()
+        new_question = body.get('question','')
+        new_answer = body.get('answer','')
+        new_difficulty = body.get('difficulty','')
+        new_category = body.get('category','')
+        question = Question(question=new_question, answer=new_answer, category=new_category, difficulty=new_difficulty)
+        question.insert()
 
-            selection = Question.query.order_by(Question.id).all()
-            if (len(selection) == 0):
-                abort(404)
-            current_questions = paginate_questions(request, selection)
-            return jsonify({
-                    'success': True,
-                    'created': question.id,
-                    'question_created': question.question,
-                    'questions': current_questions,
-                    'total_questions': len(Question.query.all())
-                })
+        selection = Question.query.order_by(Question.id).all()
+        if (len(selection) == 0):
+            abort(404)
+        current_questions = paginate_questions(request, selection)
+        return jsonify({
+                'success': True,
+                'created': question.id,
+                'question_created': question.question,
+                'questions': current_questions,
+                'total_questions': len(Question.query.all())
+            })
        except:
         abort(422)
 
